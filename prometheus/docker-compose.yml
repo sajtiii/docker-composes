@@ -1,0 +1,47 @@
+networks:
+  monitoring:
+    name: monitoring
+    internal: true
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.150.0/24
+          gateway: 192.168.150.254
+
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=24h"
+    user: "65534:899"
+    container_name: prometheus
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+        limits:
+          cpus: "1"
+          memory: 512M
+    networks:
+      - default
+      - monitoring
+    extra_hosts:
+      - "host-machine:192.168.150.254"
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    environment:
+      - "TZ=${TZ}"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+    tmpfs:
+      - "/prometheus,mode=755,uid=65534,gid=65534"
+  
