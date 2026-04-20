@@ -1,0 +1,15 @@
+networks:
+  monitoring:
+    external: true
+
+
+services:
+  traefik:
+    networks:
+      default: {}
+      web: {}
+      monitoring: {}
+    labels:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9200"
+      prometheus.io/path: "/metrics"

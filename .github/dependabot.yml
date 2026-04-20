@@ -1,0 +1,36 @@
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: /autoheal
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /cadvisor
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /node-exporter
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /prometheus-agent
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /traefik
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /watchtower
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

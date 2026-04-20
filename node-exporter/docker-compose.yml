@@ -1,0 +1,61 @@
+name: node-exporter
+
+
+networks:
+  monitoring:
+    external: true
+
+
+services:
+  node-exporter:
+    image: prom/node-exporter:latest
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/host/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--log.format=json"
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: "0.01"
+          memory: 32M
+        limits:
+          cpus: "0.1"
+          memory: 128M
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://localhost:9100/metrics
+      interval: 30s
+      start_period: 15s
+      timeout: 10s
+      retries: 3
+    cap_drop:
+      - ALL
+    networks:
+      monitoring: {}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+    environment:
+      TZ: "${TZ:-UTC}"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/host/rootfs:ro,rslave"
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9100"

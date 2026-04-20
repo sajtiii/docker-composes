@@ -1,0 +1,64 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  yamllint:
+    name: YAML lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_file: .yamllint.yml
+          file_or_dir: "**/*.yml"
+          strict: true
+
+  discover-services:
+    name: Discover services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.find.outputs.services }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Find compose directories
+        id: find
+        run: |
+          services=$(find . -mindepth 2 -maxdepth 2 -name 'docker-compose.yml' \
+            | sed 's|./||; s|/docker-compose.yml||' \
+            | sort | jq -Rnc '[inputs]')
+          echo "services=$services" >> "$GITHUB_OUTPUT"
+
+  compose-validate:
+    name: Validate docker compose files
+    needs: discover-services
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.discover-services.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate ${{ matrix.service }} compose file
+        working-directory: ${{ matrix.service }}
+        env:
+          # Provide dummy values so compose config can parse variable references
+          TZ: UTC
+          DATA_DIR: /srv
+          HOSTNAME: lint-check
+          PROMETHEUS_REMOTE_WRITE_URL: http://localhost
+          PROMETHEUS_REMOTE_WRITE_USER: user
+          PROMETHEUS_REMOTE_WRITE_PASSWORD: password
+          CLOUDFLARE_API_TOKEN: dummy
+          LETSENCRYPT_EMAIL: lint@example.com
+          WATCHTOWER_SCHEDULE: "0 0 * * *"
+          WATCHTOWER_NOTIFICATION_URL: http://localhost
+          DOCKER_METRICS_PORT: "9323"
+        run: docker compose config --quiet

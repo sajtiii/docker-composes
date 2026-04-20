@@ -1,0 +1,42 @@
+name: cadvisor
+
+
+networks:
+  monitoring:
+    external: true
+
+
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: "0.05"
+          memory: 64M
+        limits:
+          cpus: "0.25"
+          memory: 128M
+    networks:
+      monitoring: {}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    environment:
+      TZ: "${TZ:-UTC}"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8080"

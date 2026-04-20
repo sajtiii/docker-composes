@@ -1,0 +1,14 @@
+networks:
+  monitoring:
+    external: true
+
+
+services:
+  watchtower:
+    networks:
+      default: {}
+      monitoring: {}
+    labels:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8080"
+      prometheus.io/path: "/v1/metrics"

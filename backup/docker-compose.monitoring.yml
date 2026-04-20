@@ -1,0 +1,31 @@
+name: restic
+
+networks:
+  monitoring:
+    name: monitoring
+    external: true
+
+services:
+  restic:
+    environment:
+      PUSHGATEWAY_URL: http://restic-pushgateway:9091
+
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: restic-pushgateway
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 64M
+    read_only: true
+    cap_drop:
+      - ALL
+    networks:
+      default: {}
+      monitoring: {}
+    labels:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9091"
+      prometheus.io/path: "/metrics"

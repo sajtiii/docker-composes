@@ -1,0 +1,70 @@
+networks:
+  default:
+    name: prometheus
+  monitoring:
+    name: monitoring
+    internal: true
+    driver: bridge
+
+services:
+  prometheus-agent:
+    image: prom/prometheus:latest
+    command:
+      - "--agent"
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.agent.path=/prometheus"
+      - "--storage.agent.wal-compression"
+      - "--storage.agent.retention.max-time=15m"
+      - "--storage.agent.wal-truncate-frequency=1m"
+      - "--log.format=json"
+    user: "65534:899"
+    group_add:
+      - "999"
+    container_name: prometheus-agent
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://localhost:9090/-/healthy
+      interval: 15s
+      start_period: 15s
+      timeout: 2s
+      retries: 3
+    cap_drop:
+      - ALL
+    networks:
+      default: {}
+      monitoring:
+        aliases:
+          - prometheus
+    extra_hosts:
+      - "host-machine=host-gateway"
+    environment:
+      TZ: "${TZ:-UTC}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    tmpfs:
+      - "/prometheus,mode=755,uid=65534,gid=65534"
+    labels:
+      checksum.configuration: ${PROMETHEUS_CONFIG_HASH}
+      com.centurylinklabs.watchtower.enable: "true"

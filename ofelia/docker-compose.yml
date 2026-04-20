@@ -1,0 +1,24 @@
+name: ofelia
+
+services:
+  ofelia:
+    image: mcuadros/ofelia:latest
+    container_name: ofelia-restic
+    command: daemon --docker
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    network_mode: none
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro

@@ -1,0 +1,52 @@
+name: watchtower
+
+
+networks:
+  default:
+    name: watchtower
+
+
+services:
+  watchtower:
+    image: nickfedor/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    read_only: true
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: "0.01"
+          memory: 32M
+        limits:
+          cpus: "0.1"
+          memory: 64M
+    cap_drop:
+      - ALL
+    networks:
+      - default
+    environment:
+      TZ: "${TZ:-UTC}"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_INCLUDE_RESTARTING: "true"
+      WATCHTOWER_INCLUDE_STOPPED: "true"
+      WATCHTOWER_REVIVE_STOPPED: "true"
+      WATCHTOWER_SCHEDULE: "${WATCHTOWER_SCHEDULE:-0 30 4 * * *}"
+      WATCHTOWER_LABEL_ENABLE: "${WATCHTOWER_LABEL_ENABLE:-true}"
+      WATCHTOWER_HTTP_API_METRICS: "true"
+      WATCHTOWER_HTTP_API_TOKEN: "public"
+      WATCHTOWER_LOG_FORMAT: "json"
+      WATCHTOWER_NOTIFICATION_URL: "${WATCHTOWER_NOTIFICATION_URL:-}"
+      WATCHTOWER_NOTIFICATIONS_LEVEL: "${WATCHTOWER_NOTIFICATIONS_LEVEL:-warn}"
+      WATCHTOWER_NOTIFICATIONS_HOSTNAME: "${HOSTNAME}"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./config/config.json:/config.json:ro
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"

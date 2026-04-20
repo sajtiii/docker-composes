@@ -1,0 +1,47 @@
+name: restic
+
+services:
+  restic:
+    image: creativeprojects/resticprofile:latest
+    container_name: backup
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+    read_only: true
+    cap_drop:
+      - ALL
+    hostname: ${HOSTNAME}
+    environment:
+      TZ: ${TZ:-UTC}
+      RESTIC_REPO_HOST: ${RESTIC_REPO_HOST}
+      RESTIC_REPO_USERNAME: ${RESTIC_REPO_USERNAME}
+      RESTIC_REPO_PASSWORD: ${RESTIC_REPO_PASSWORD}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-@daily-random}
+      BACKUP_FOLDERS: ${BACKUP_FOLDERS}
+      BACKUP_EXCLUDE: ${BACKUP_EXCLUDE:-}
+      DISCORD_WEBHOOK_URL: ${BACKUP_DISCORD_WEBHOOK_URL:-}
+      KEEP_LAST: ${KEEP_LAST:-}
+      KEEP_HOURLY: ${KEEP_HOURLY:-}
+      KEEP_DAILY: ${KEEP_DAILY:-7}
+      KEEP_WEEKLY: ${KEEP_WEEKLY:-4}
+      KEEP_MONTHLY: ${KEEP_MONTHLY:-6}
+      KEEP_YEARLY: ${KEEP_YEARLY:-}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./entrypoint.sh:/entrypoint.sh:ro
+      - ./hooks/on-backup-fail.sh:/hooks/on-backup-fail.sh:ro
+      - /:/host:ro
+    tmpfs:
+      - /resticprofile:mode=700
+      - /tmp:mode=1777
+      - /etc/crontabs:mode=700
+      - /var/spool/cron:mode=700
+    labels:
+      checksum.entrypoint: ${BACKUP_ENTRYPOINT_HASH}
+      checksum.on-backup-fail: ${BACKUP_ON_FAIL_HOOK_HASH}
+
