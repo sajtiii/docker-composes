@@ -87,4 +87,4 @@ resticprofile schedule --all
 sed -i '/resticprofile/s|$| >> /proc/1/fd/1 2>\&1|' /var/spool/cron/crontabs/root
 
 echo "[entrypoint] Schedules registered. Starting cron daemon..."
-exec crond -f -l 2 -L /proc/1/fd/1
+exec crond -f -l 8 -L /proc/1/fd/1
