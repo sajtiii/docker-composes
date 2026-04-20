@@ -44,4 +44,3 @@ services:
     labels:
       checksum.entrypoint: ${BACKUP_ENTRYPOINT_HASH}
       checksum.on-backup-fail: ${BACKUP_ON_FAIL_HOOK_HASH}
-
