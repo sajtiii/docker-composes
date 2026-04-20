@@ -14,6 +14,7 @@ services:
       - "--path.sysfs=/host/sys"
       - "--path.rootfs=/host/rootfs"
       - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+      - "--collector.textfile.directory=/var/lib/node_exporter/textfile_collector"
       - "--log.format=json"
     container_name: node-exporter
     restart: unless-stopped
@@ -55,6 +56,7 @@ services:
       - "/proc:/host/proc:ro"
       - "/sys:/host/sys:ro"
       - "/:/host/rootfs:ro,rslave"
+      - "/var/lib/node_exporter/textfile_collector:/var/lib/node_exporter/textfile_collector:ro"
     labels:
       com.centurylinklabs.watchtower.enable: "true"
       prometheus.io/scrape: "true"
