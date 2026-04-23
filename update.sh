@@ -37,15 +37,9 @@ compose_handle() {
 export TZ DATA_DIR
 export HOSTNAME=$(hostname)
 
-if [ "$AUTOHEAL_ENABLED" = "true" ]; then
-  echo "Starting autoheal..."
-  compose_up autoheal
-fi
+compose_handle autoheal $AUTOHEAL_ENABLED
 
-if [ "$OFELIA_ENABLED" = "true" ]; then
-  echo "Starting ofelia..."
-  compose_up backup
-fi
+compose_handle ofelia $OFELIA_ENABLED
 
 if [ "$MONITORING_ENABLED" = "true" ]; then
   export PROMETHEUS_SCRAPE_INTERVAL="${PROMETHEUS_SCRAPE_INTERVAL:-15s}"
