@@ -19,7 +19,7 @@ services:
           cpus: "0.01"
           memory: 32M
         limits:
-          cpus: "0.1"
+          cpus: "0.5"
           memory: 64M
     cap_drop:
       - ALL

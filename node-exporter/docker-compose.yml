@@ -26,7 +26,7 @@ services:
           cpus: "0.01"
           memory: 32M
         limits:
-          cpus: "0.1"
+          cpus: "0.5"
           memory: 128M
     healthcheck:
       test:
@@ -42,6 +42,11 @@ services:
       retries: 3
     cap_drop:
       - ALL
+    # Lets node-exporter stat root-only paths (docker volume dirs, restricted ZFS datasets) so
+    # node_filesystem_device_error{device_error="permission denied"} stops firing. Read-only;
+    # mounts are :ro so this can't be used to write anything.
+    cap_add:
+      - DAC_READ_SEARCH
     networks:
       monitoring: {}
     logging:
